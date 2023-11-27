@@ -1,0 +1,70 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# ASGSmaps
+
+<!-- badges: start -->
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+<!-- badges: end -->
+
+ASGSmaps is an API wrapper for the [Australian Statistical Geography Standard (ASGS) Edition 3](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026) from the [Australian Bureau of Statistics (ABS)](https://www.abs.gov.au/). It includes functions to access information about statistical geography standards and to download the data from the [ABS API](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/data-services-and-apis).
+
+## Installation
+
+You can install the development version of ASGSmaps like so:
+
+``` {r}
+# # install remotes package
+# install.packages('remotes')
+# # install ASGSmaps from github
+# remotes::install_github()
+
+```
+
+
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(ASGSmaps)
+
+# get a list of ASGS services available
+available_services()
+
+# get a list of standards available within a service
+available_standards('ASGS2021')
+
+# get a description of an available standard
+standard_description('ASGS2021', 'STE')
+
+# get a list of fields available within a standard
+standard_fields('ASGS2021', 'STE')
+
+# get a list of unique values from a field
+field_values('ASGS2021', 'STE', 'STATE_NAME_2021')
+
+# use the information to build a query
+map <- get_map_data(
+  service = 'ASGS2021',
+  standard = 'STE',
+  where = "STATE_NAME_2021 IN ('New South Wales')"
+)
+
+plot(map$geometry)
+
+```
+
