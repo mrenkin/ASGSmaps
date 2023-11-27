@@ -31,7 +31,7 @@ You can install the development version of ASGSmaps like so:
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+Get information about ASGS services and standards and use the information to build a query.
 
 ``` r
 library(ASGSmaps)
