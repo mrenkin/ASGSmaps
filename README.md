@@ -26,7 +26,7 @@ You can install the development version of ASGSmaps like so:
 # # install remotes package
 # install.packages('remotes')
 # # install ASGSmaps from github
-# remotes::install_github()
+# remotes::install_github('mrenkin/ASGSmaps')
 ```
 
 ## Example
