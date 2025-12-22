@@ -1,6 +1,6 @@
 Package: ASGSmaps
 Title: An API Wrapper for Accessing Australian Statistical Geography Standard Data from the ABS
-Version: 0.0.0.9000
+Version: 0.1.0.9000
 Authors@R: 
     person("Melanie", "Renkin", , "mrenkin@gmail.com", role = c("aut", "cre"))
 Description: Functions for accessing the Australian Statistical Geography Standard (ASGS) Edition 3 
