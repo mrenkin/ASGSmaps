@@ -78,6 +78,7 @@
 #' plot(map$geometry)
 #'
 
+# function to use api call to extract data from ABS maps
 get_map_data <- function(service,
                          standard,
                          where = NULL,
@@ -119,24 +120,28 @@ get_map_data <- function(service,
                          f = "geojson"
 ) {
 
-
+  # check that 'service' is not null, is a character and does not include multiple items
   if (is.null(service) || !is.character(service) || length(service) != 1) {
     stop("! `service` must be a character vector of length 1.\n  X Use available_services() to get a list of ASGS services currently available.")
-  }
+  } # close if
 
+  # check that 'standard' is not null, is a character and does not include multiple items
   if (is.null(standard) || !is.character(standard) || length(standard) != 1) {
     stop("! `standard` must be a character vector of length 1.\n  X Use available_standards() to get a list of standards within a specified ASGS service.")
-  }
+  } # close if
 
+  # check that 'where' is not null, is a character and does not include multiple items
   if (!is.null(where) && (!is.character(where) || length(where) != 1)) {
     stop("! `where` must be a legal SQL clause.\n  X Use standard_fields() to get a list of fields available within a specified standard.")
-  }
+  } # close if
 
+  # create url
   url <- httr::parse_url(paste0("https://geo.abs.gov.au/arcgis/rest/services", "/", service))
+  # add service and standard to the url
   url$path <- paste(url$path, paste(toupper(standard), "MapServer/0/query", sep = "/"), sep = "/")
 
-  # build the query
-  url$query <- list(
+  # build a query that gets the number of records
+    url$query <- list(
     where = where,
     text = text,
     objectIds = objectIds,
@@ -156,7 +161,7 @@ get_map_data <- function(service,
     outSR = outSR,
     havingClause = havingClause,
     returnIdsOnly = returnIdsOnly,
-    returnCountOnly = returnCountOnly,
+    returnCountOnly = TRUE, # this query only get the number of records
     orderByFields = orderByFields,
     groupByFieldsForStatistics = groupByFieldsForStatistics,
     outStatistics = outStatistics,
@@ -174,29 +179,101 @@ get_map_data <- function(service,
     quantizationParameters = quantizationParameters,
     featureEncoding = featureEncoding,
     f = f
-  )
-
+  ) # close list
 
   # check if the URL is valid
   if (httr::status_code(httr::GET(url)) == 404) {
     stop("! Invalid URL.")
-  }
-
+  } # close if
 
   # make the API request
-  response <- httr::GET(url, httr::verbose())
+  count <- httr::GET(url)
 
   # check if the response is successful
-  if (httr::http_error(response)) {
-    status_code <- httr::status_code(response)
+  if (httr::http_error(count)) {
+    status_code <- httr::status_code(count)
     stop(paste0("! API request failed with status code ", status_code, "."))
+  } # close if
+
+  # get record count
+  count_value <- as.numeric(gsub("\\D", "",httr::content(count, as = 'text')))
+  # calculate number of pages required
+  pages <- floor(count_value/2000)
+  # create list of offset (number of records to skip) values
+  offsets <- seq(from = 0, to = pages*2000, by = 2000)
+
+  # create a function to use to page through results in map function
+  get_data <- function(offset) {
+
+    # build the query
+    url$query <- list(
+      where = where,
+      text = text,
+      objectIds = objectIds,
+      time = time,
+      geometry = geometry,
+      geometryType = geometryType,
+      inSR = inSR,
+      spatialRel = spatialRel,
+      distance = distance,
+      units = units,
+      relationParam = relationParam,
+      outfields = outfields,
+      returnGeometry = returnGeometry,
+      returnTrueCurves = returnTrueCurves,
+      maxAllowableOffset = maxAllowableOffset,
+      geometryPrecision = geometryPrecision,
+      outSR = outSR,
+      havingClause = havingClause,
+      returnIdsOnly = returnIdsOnly,
+      returnCountOnly = returnCountOnly,
+      orderByFields = orderByFields,
+      groupByFieldsForStatistics = groupByFieldsForStatistics,
+      outStatistics = outStatistics,
+      returnZ = returnZ,
+      returnM = returnM,
+      gdbVersion = gdbVersion,
+      historicMoment = historicMoment,
+      returnDistinctValues = returnDistinctValues,
+      resultOffset = offset, # this will input the offset values created above
+      resultRecordCount = resultRecordCount,
+      returnExtentOnly = returnExtentOnly,
+      datumTransformation = datumTransformation,
+      parameterValues = parameterValues,
+      rangeValues = rangeValues,
+      quantizationParameters = quantizationParameters,
+      featureEncoding = featureEncoding,
+      f = f
+    )
+
+    # check if the URL is valid
+    if (httr::status_code(httr::GET(url)) == 404) {
+      stop("! Invalid URL.")
+    }
+
+    # get the response
+    response <- httr::GET(url, httr::verbose())
+
+    # check if the response is successful
+    if (httr::http_error(response)) {
+      status_code <- httr::status_code(response)
+      stop(paste0("! API request failed with status code ", status_code, "."))
+    }
+
+    # convert response to sf dataframe
+    response <- sf::st_read(response,
+                            quiet = TRUE)
   }
 
-  map <- sf::st_read(response,
-    quiet = TRUE
-  )
+  # use offset values in the geet data function
+  results <- purrr::map(offsets, get_data)
 
-  return(map)
+  # combine the list of results into a single data frame
+  map_df <- dplyr::bind_rows(results)
+
+  # return the sf dataframe
+  return(map_df)
 }
+
 
 

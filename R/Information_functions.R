@@ -297,30 +297,67 @@ field_values <- function(service = NULL, standard = NULL, field = NULL, unique =
     }
   }
 
-  # build the query
+  # build a query
   url$query <- list(
     where = "1=1",
     outfields = field,
-    returnGeometry = "false",
+    returnCountOnly = TRUE, # get the nuber of records only
     f = "pjson"
   )
 
-# send the HTTP request and check for errors
-request <- httr::GET(url)
+  # check if the URL is valid
+  if (httr::status_code(httr::GET(url)) == 404) {
+    stop("! Invalid URL.")
+  } # close if
 
-httr::stop_for_status(request)
+  # make the API request
+  count <- httr::GET(url)
 
-# parse the response as an sf object
-values <- sf::st_read(request, quiet = TRUE)
+  # check if the response is successful
+  if (httr::http_error(count)) {
+    status_code <- httr::status_code(count)
+    stop(paste0("! API request failed with status code ", status_code, "."))
+  } # close if
 
-# optionally remove duplicates
-if (unique == TRUE) {
-  values <- unique(values)
-}
+  # get result count
+  count_value <- as.numeric(gsub("\\D", "",httr::content(count, as = 'text')))
+  # calculate number of pages required
+  pages <- floor(count_value/2000)
+  # create list of offset values
+  offsets <- seq(from = 0, to = pages*2000, by = 2000)
 
-# return the result
-return(values)
-}
+  # create a function to use in the map function
+  get_values <- function(offset) {
+  # build the query
+      url$query <- list(
+        where = "1=1",
+        outfields = field,
+        returnGeometry = "false",
+        resultOffset = offset, # this will input the offset values created above
+        f = "pjson"
+      )
+
+      # check if the URL is valid
+      if (httr::status_code(httr::GET(url)) == 404) {
+        stop("! Invalid URL.")
+      } # close if
+
+      # make the API request
+      response <- httr::GET(url, httr::verbose())
+
+      # convert to sf
+      response <- sf::st_read(response,
+                              quiet = TRUE)
+  }
+
+  # use offset values in the function get values
+  results <- purrr::map(offsets, get_values)
+  # combine records
+  values_df <- dplyr::bind_rows(results)
+    # result all results
+    return(values_df)
+} # close function
+
 
 
 
