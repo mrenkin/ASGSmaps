@@ -26,8 +26,6 @@
 #' @param geometryPrecision The number of decimal places in the output geometry.
 #' @param outSR The spatial reference of the output geometry.
 #' @param havingClause The having clause to be used in the query.
-#' @param returnIdsOnly Whether to return only the object IDs. Default: FALSE. .
-#' @param returnCountOnly Whether to return only the count of features that satisfy the query.
 #' @param orderByFields A comma-separated list of fields to order by.
 #' @param groupByFieldsForStatistics A comma-separated list of fields to group by in the statistics.
 #' @param outStatistics The statistics to be calculated for the query.
@@ -99,8 +97,6 @@ get_map_data <- function(service,
                          geometryPrecision = NULL,
                          outSR = NULL,
                          havingClause = NULL,
-                         returnIdsOnly = "false", # default value
-                         returnCountOnly = "false", # default value
                          orderByFields = NULL,
                          groupByFieldsForStatistics = NULL,
                          outStatistics = NULL,
@@ -160,7 +156,6 @@ get_map_data <- function(service,
     geometryPrecision = geometryPrecision,
     outSR = outSR,
     havingClause = havingClause,
-    returnIdsOnly = returnIdsOnly,
     returnCountOnly = TRUE, # this query only get the number of records
     orderByFields = orderByFields,
     groupByFieldsForStatistics = groupByFieldsForStatistics,
@@ -225,8 +220,6 @@ get_map_data <- function(service,
       geometryPrecision = geometryPrecision,
       outSR = outSR,
       havingClause = havingClause,
-      returnIdsOnly = returnIdsOnly,
-      returnCountOnly = returnCountOnly,
       orderByFields = orderByFields,
       groupByFieldsForStatistics = groupByFieldsForStatistics,
       outStatistics = outStatistics,
