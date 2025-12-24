@@ -26,8 +26,6 @@ get_map_data(
   geometryPrecision = NULL,
   outSR = NULL,
   havingClause = NULL,
-  returnIdsOnly = "false",
-  returnCountOnly = "false",
   orderByFields = NULL,
   groupByFieldsForStatistics = NULL,
   outStatistics = NULL,
@@ -91,10 +89,6 @@ Example: geometry = "{xmin: 144.3577 ymin: -34.57995 xmax: 146.4928 ymax: -32.67
 \item{outSR}{The spatial reference of the output geometry.}
 
 \item{havingClause}{The having clause to be used in the query.}
-
-\item{returnIdsOnly}{Whether to return only the object IDs. Default: FALSE. .}
-
-\item{returnCountOnly}{Whether to return only the count of features that satisfy the query.}
 
 \item{orderByFields}{A comma-separated list of fields to order by.}
 
